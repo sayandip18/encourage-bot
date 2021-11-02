@@ -1,10 +1,21 @@
 const { Client, Intents } = require('discord.js');
-const { token } = require('./config.json');
-
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const { token } = require('./config.json');
+const fetch = require('node-fetch')
 
-client.once('ready', () => {
-	console.log('Ready!');
+
+function getQuote() {
+    return fetch("https://zenquotes.io/api/random")
+      .then(res => {
+        return res.json()
+      })
+      .then(data => {
+        return data[0]["q"] + " -" + data[0]["a"]
+      })
+  }
+
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}!`);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -17,8 +28,11 @@ client.on('interactionCreate', async interaction => {
 	} else if (commandName === 'server') {
 		await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
 	} else if (commandName === 'user') {
-		await interaction.reply('User info.');
+		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
 	}
+    else if (commandName === 'inspire') {
+        await getQuote().then(quote => interaction.reply(quote))
+    }
 });
 
-client.login(token);
+client.login(token)
